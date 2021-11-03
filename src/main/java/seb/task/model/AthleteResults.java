@@ -1,0 +1,36 @@
+package seb.task.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.time.Duration;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+public class AthleteResults {
+
+    private String fullName;
+
+    private int fencing;
+
+    private Duration swimming;
+
+    private int ridding;
+
+    private int shooting;
+
+    private Duration run;
+
+    private long Points;
+
+    private Duration concludingEventTime;
+
+    private Duration finalTime;
+
+    private int finalPlace;
+
+}

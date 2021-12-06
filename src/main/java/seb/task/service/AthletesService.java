@@ -4,10 +4,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import seb.task.csv.CsvReader;
 import seb.task.model.AthleteResults;
+import seb.task.utils.Places;
 
+import java.io.FileNotFoundException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Component
@@ -36,6 +40,7 @@ public class AthletesService {
 
         long firstTime = athleteResults
                 .stream()
+                .filter(Objects::nonNull)
                 .map(AthleteResults::getPoints)
                 .findFirst()
                 .get();
@@ -57,10 +62,10 @@ public class AthletesService {
         }
         athleteResults.sort(Comparator.comparing(AthleteResults::getFinalTime).reversed());
 
-        int place = 1;
+        int placeNumber = 1;
         for (AthleteResults places : athleteResults) {
-            places.setFinalPlace(place);
-            place++;
+            places.setFinalPlace(Places.findByNumber(placeNumber));
+            placeNumber++;
         }
 
     }

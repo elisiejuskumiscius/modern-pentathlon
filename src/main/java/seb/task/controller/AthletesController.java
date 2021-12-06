@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 import seb.task.model.AthleteResults;
 import seb.task.service.AthletesService;
 
+import java.io.FileNotFoundException;
 import java.util.List;
 
 @RestController

@@ -5,8 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import seb.task.model.AthleteResults;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Duration;
@@ -19,13 +18,23 @@ public class CsvReader {
 
     private static final Logger log = LoggerFactory.getLogger(CsvReader.class);
 
+    private static int countLines() throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new FileReader("Athlete_Results.csv"));
+        int count = 0;
+        while(bufferedReader.readLine() != null)
+        {
+            count++;
+        }
+        return count;
+    }
+
     public List<AthleteResults> readCSV() {
         List<AthleteResults> athleteResults = new ArrayList<>();
         File csvFile = new File("Athlete_Results.csv");
 
+
         try {
             int recordSize = 8;
-            int athletesCount = 10;
             Files.readAllLines(csvFile.toPath(), StandardCharsets.UTF_8)
                     .forEach(line -> {
                         List<String> record = new ArrayList<>(recordSize);
@@ -33,8 +42,11 @@ public class CsvReader {
                         while (record.size() < recordSize) {
                             record.add("");
                         }
-
-                        athleteResults.add(parseAthleteResults(record, athletesCount));
+                        try {
+                            athleteResults.add(parseAthleteResults(record, countLines()));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     });
 
         } catch (IOException e) {
@@ -45,7 +57,6 @@ public class CsvReader {
 
         return athleteResults;
     }
-
 
     private AthleteResults parseAthleteResults(List<String> record, int athletesCount) {
         String fullName = record.get(0);
@@ -113,9 +124,7 @@ public class CsvReader {
 
     private int calculateRiddingPoints(int knockingDown, int refusal, int disobedienceLeading) {
         final int FAULT_FREE_RIDE = 1200;
-
         return FAULT_FREE_RIDE - (knockingDown * 28 + refusal * 40 + disobedienceLeading * 60);
-
     }
 
 }

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import seb.task.utils.Places;
 
 import java.time.Duration;
 
@@ -14,23 +15,14 @@ import java.time.Duration;
 public class AthleteResults {
 
     private String fullName;
-
     private int fencing;
-
     private Duration swimming;
-
     private int ridding;
-
     private int shooting;
-
     private Duration run;
-
     private long Points;
-
     private Duration concludingEventTime;
-
     private Duration finalTime;
-
-    private int finalPlace;
+    private Places finalPlace;
 
 }

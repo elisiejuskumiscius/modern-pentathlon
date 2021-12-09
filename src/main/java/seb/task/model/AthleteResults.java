@@ -20,7 +20,7 @@ public class AthleteResults {
     private int ridding;
     private int shooting;
     private Duration run;
-    private long Points;
+    private long points;
     private Duration concludingEventTime;
     private Duration finalTime;
     private Places finalPlace;

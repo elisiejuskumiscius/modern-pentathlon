@@ -1,8 +1,10 @@
 package seb.task.csv;
 
+import lombok.var;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import seb.task.exceptions.SebResponseException;
 import seb.task.model.AthleteResults;
 
 import java.io.*;
@@ -13,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static seb.task.messages.ErrorMessage.FAIL_READING_FILE;
+
 @Service
 public class CsvReader {
 
@@ -21,17 +25,18 @@ public class CsvReader {
     private static int countLines() throws IOException {
         BufferedReader bufferedReader = new BufferedReader(new FileReader("Athlete_Results.csv"));
         int count = 0;
+
         while(bufferedReader.readLine() != null)
         {
+            bufferedReader.readLine();
             count++;
         }
         return count;
     }
 
-    public List<AthleteResults> readCSV() {
+    public List<AthleteResults> readCSV() throws SebResponseException {
         List<AthleteResults> athleteResults = new ArrayList<>();
         File csvFile = new File("Athlete_Results.csv");
-
 
         try {
             int recordSize = 8;
@@ -50,7 +55,9 @@ public class CsvReader {
                     });
 
         } catch (IOException e) {
-            log.error("Reading CSV Error!", e);
+            var message = String.format("Failed reading %s file!", e.getMessage());
+            log.error(message);
+            throw SebResponseException.createValidation(FAIL_READING_FILE, message);
         }
 
         log.info("Athlete_Results.csv read successfully");

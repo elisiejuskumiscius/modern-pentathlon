@@ -1,4 +1,4 @@
-package seb.task.utils;
+package seb.task.common;
 
 import java.util.Arrays;
 import java.util.Objects;

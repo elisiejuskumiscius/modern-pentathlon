@@ -3,15 +3,16 @@ package seb.task.service;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import seb.task.csv.CsvReader;
+import seb.task.exceptions.SebResponseException;
 import seb.task.model.AthleteResults;
-import seb.task.utils.Places;
+import seb.task.common.Places;
 
-import java.io.FileNotFoundException;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+
+import static seb.task.messages.ErrorMessage.NO_FIRST_RESULT;
 
 @Service
 @Component
@@ -23,7 +24,7 @@ public class AthletesService {
         this.csvReader = csvReader;
     }
 
-    public List<AthleteResults> getAllAthletes() {
+    public List<AthleteResults> getAllAthletes() throws SebResponseException {
         List<AthleteResults> athleteResults;
         athleteResults = csvReader.readCSV();
         sort(athleteResults);
@@ -36,14 +37,17 @@ public class AthletesService {
         athleteResults.sort(Comparator.comparing(AthleteResults::getPoints).reversed());
     }
 
-    private void concludingEventTime(List<AthleteResults> athleteResults) {
-
-        long firstTime = athleteResults
+    private Long findingFirstTime(List<AthleteResults> athleteResults) throws SebResponseException {
+        return athleteResults
                 .stream()
                 .filter(Objects::nonNull)
                 .map(AthleteResults::getPoints)
                 .findFirst()
-                .get();
+                .orElseThrow(() -> SebResponseException.createValidation(NO_FIRST_RESULT));
+    }
+
+    private void concludingEventTime(List<AthleteResults> athleteResults) throws SebResponseException {
+        long firstTime = findingFirstTime(athleteResults);
 
         for (AthleteResults result : athleteResults) {
             long diff = firstTime - result.getPoints();

@@ -14,22 +14,28 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
-import static seb.task.messages.ErrorMessage.FAIL_READING_FILE;
+import static seb.task.messages.ErrorMessage.*;
 
 @Service
 public class CsvReader {
 
     private static final Logger log = LoggerFactory.getLogger(CsvReader.class);
 
-    private static int countLines() throws IOException {
-        BufferedReader bufferedReader = new BufferedReader(new FileReader("Athlete_Results.csv"));
+    private static int countLines() throws SebResponseException, IOException {
+        BufferedReader bufferedReader;
         int count = 0;
-
-        while(bufferedReader.readLine() != null)
-        {
-            bufferedReader.readLine();
-            count++;
+        try {
+            bufferedReader = new BufferedReader(new FileReader("Athlete_Results.csv"));
+            while (Objects.nonNull(bufferedReader.readLine())) {
+//                bufferedReader.readLine();
+                count++;
+            }
+        } catch (IOException e) {
+            var message = String.format("Failed counting lines %s!", e.getMessage());
+            log.error(message);
+            throw SebResponseException.createValidation(FAIL_COUNTING_LINES, message);
         }
         return count;
     }
@@ -37,19 +43,18 @@ public class CsvReader {
     public List<AthleteResults> readCSV() throws SebResponseException {
         List<AthleteResults> athleteResults = new ArrayList<>();
         File csvFile = new File("Athlete_Results.csv");
-
         try {
             int recordSize = 8;
             Files.readAllLines(csvFile.toPath(), StandardCharsets.UTF_8)
                     .forEach(line -> {
-                        List<String> record = new ArrayList<>(recordSize);
-                        record.addAll(Arrays.asList(line.split(",")));
-                        while (record.size() < recordSize) {
-                            record.add("");
+                        List<String> records = new ArrayList<>(recordSize);
+                        records.addAll(Arrays.asList(line.split(",")));
+                        while (records.size() < recordSize) {
+                            records.add("");
                         }
                         try {
-                            athleteResults.add(parseAthleteResults(record, countLines()));
-                        } catch (IOException e) {
+                            athleteResults.add(parseAthleteResults(records, countLines()));
+                        } catch (SebResponseException | IOException e) {
                             e.printStackTrace();
                         }
                     });
@@ -65,19 +70,19 @@ public class CsvReader {
         return athleteResults;
     }
 
-    private AthleteResults parseAthleteResults(List<String> record, int athletesCount) {
-        String fullName = record.get(0);
-        int fencing = Integer.parseInt(record.get(1));
-        Duration swimming = parseTime(record.get(2));
-        int knockingDown = Integer.parseInt(record.get(3));
-        int refusal = Integer.parseInt(record.get(4));
-        int disobedienceLeading = Integer.parseInt(record.get(5));
-        int shooting = Integer.parseInt(record.get(6));
-        Duration running = parseTime(record.get(7));
+    private AthleteResults parseAthleteResults(List<String> records, int athletesCount) {
+        String fullName = records.get(0);
+        int fencing = Integer.parseInt(records.get(1));
+        Duration swimming = parseTime(records.get(2));
+        int knockingDown = Integer.parseInt(records.get(3));
+        int refusal = Integer.parseInt(records.get(4));
+        int disobedienceLeading = Integer.parseInt(records.get(5));
+        int shooting = Integer.parseInt(records.get(6));
+        Duration running = parseTime(records.get(7));
 
         long points = calculateRiddingPoints(knockingDown, refusal, disobedienceLeading)
                 + calculateSwimmingPoints(swimming) + calculatingFencingPoints(athletesCount, fencing)
-                + calculatingShootingPoints(shooting);
+                + (long) calculatingShootingPoints(shooting);
 
         return new AthleteResults()
                 .setFullName(fullName)

@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static seb.task.messages.ErrorMessage.NO_FIRST_RESULT;
 
@@ -66,12 +67,8 @@ public class AthletesService {
         }
         athleteResults.sort(Comparator.comparing(AthleteResults::getFinalTime).reversed());
 
-        int placeNumber = 1;
-        for (AthleteResults places : athleteResults) {
-            places.setFinalPlace(Places.findByNumber(placeNumber));
-            placeNumber++;
-        }
-
+        AtomicInteger placeNumber = new AtomicInteger(1);
+        athleteResults.forEach(athletes -> athletes.setFinalPlace(Places.findByNumber(placeNumber.getAndIncrement())));
     }
 
 }

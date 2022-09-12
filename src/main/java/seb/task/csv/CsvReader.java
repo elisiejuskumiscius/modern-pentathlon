@@ -1,35 +1,39 @@
 package seb.task.csv;
 
-import lombok.var;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import seb.task.exceptions.SebResponseException;
 import seb.task.model.AthleteResults;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import static seb.task.messages.ErrorMessage.*;
+import static seb.task.messages.ErrorMessage.FAIL_COUNTING_LINES;
+import static seb.task.messages.ErrorMessage.FAIL_READING_FILE;
 
 @Service
 public class CsvReader {
 
     private static final Logger log = LoggerFactory.getLogger(CsvReader.class);
 
-    private static int countLines() throws SebResponseException, IOException {
+    private static int countLines() throws SebResponseException {
         BufferedReader bufferedReader;
         int count = 0;
         try {
             bufferedReader = new BufferedReader(new FileReader("Athlete_Results.csv"));
             while (Objects.nonNull(bufferedReader.readLine())) {
-//                bufferedReader.readLine();
                 count++;
             }
         } catch (IOException e) {
@@ -40,24 +44,32 @@ public class CsvReader {
         return count;
     }
 
+    private static int countCommas(String line) {
+        int count = 0;
+        for (String subString : line.split(",")) {
+            count++;
+        }
+        return count;
+    }
+
     public List<AthleteResults> readCSV() throws SebResponseException {
+        Instant start = Instant.now();
         List<AthleteResults> athleteResults = new ArrayList<>();
         File csvFile = new File("Athlete_Results.csv");
+
         try {
-            int recordSize = 8;
-            Files.readAllLines(csvFile.toPath(), StandardCharsets.UTF_8)
-                    .forEach(line -> {
-                        List<String> records = new ArrayList<>(recordSize);
-                        records.addAll(Arrays.asList(line.split(",")));
-                        while (records.size() < recordSize) {
-                            records.add("");
-                        }
-                        try {
-                            athleteResults.add(parseAthleteResults(records, countLines()));
-                        } catch (SebResponseException | IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
+            Files.readAllLines(csvFile.toPath(), StandardCharsets.UTF_8).forEach(line -> {
+                var commas = countCommas(line);
+                List<String> records = new ArrayList<>(Arrays.asList(line.split(",")));
+                while (records.size() < commas) {
+                    records.add("");
+                }
+                try {
+                    athleteResults.add(parseAthleteResults(records, countLines()));
+                } catch (SebResponseException e) {
+                    e.printStackTrace();
+                }
+            });
 
         } catch (IOException e) {
             var message = String.format("Failed reading %s file!", e.getMessage());
@@ -66,7 +78,7 @@ public class CsvReader {
         }
 
         log.info("Athlete_Results.csv read successfully");
-
+        log.info("Reading took: {}ms", Duration.between(start, Instant.now()).toMillis());
         return athleteResults;
     }
 

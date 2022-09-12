@@ -22,7 +22,7 @@ public class AthleteResults {
     private Duration run;
     private long points;
     private Duration concludingEventTime;
-    private Duration finalTime;
+    private String finalTime;
     private Places finalPlace;
 
 }

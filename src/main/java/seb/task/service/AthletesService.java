@@ -1,5 +1,6 @@
 package seb.task.service;
 
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import seb.task.csv.CsvReader;
@@ -63,7 +64,7 @@ public class AthletesService {
             Duration concludingEventTime = time.getConcludingEventTime();
             Duration run = time.getRun();
             Duration finalTime = run.minus(concludingEventTime);
-            time.setFinalTime(finalTime);
+            time.setFinalTime(DurationFormatUtils.formatDurationHMS(finalTime.toMillis()));
         }
         athleteResults.sort(Comparator.comparing(AthleteResults::getFinalTime).reversed());
 
